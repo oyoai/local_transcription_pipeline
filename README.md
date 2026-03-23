@@ -33,6 +33,8 @@ Each run creates a folder in output/ with:
 - processed audio
 - chunk files (internal)
 - per-chunk transcripts
+  
+  <img width="545" height="436" alt="transcription_screenshot" src="https://github.com/user-attachments/assets/c0439378-b08b-4861-9bf1-6855c6439b49" />
 - a combined transcript (full_transcript.txt)
 
 ## Notes
