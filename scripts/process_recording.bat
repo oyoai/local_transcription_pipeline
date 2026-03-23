@@ -4,7 +4,7 @@ setlocal
 set "FFMPEG=%~dp0..\tools\ffmpeg-8.1-essentials_build\bin\ffmpeg.exe"
 
 if "%~1"=="" (
-    echo drag and drop an mp4 file onto this script
+    echo drag and drop an audio or video file onto this script
     pause
     exit /b 1
 )
@@ -12,7 +12,7 @@ if "%~1"=="" (
 set "INPUT=%~1"
 set "BASENAME=%~n1"
 set "OUTDIR=%~dp0..\output\%BASENAME%"
-set "AUDIO=%OUTDIR%\lecture_audio.mp3"
+set "AUDIO=%OUTDIR%\source_audio.mp3"
 set "CHUNKPATTERN=%OUTDIR%\chunk_%%03d.mp3"
 set "TRANSCRIBE_SCRIPT=%~dp0transcribe_chunks.py"
 
@@ -42,7 +42,7 @@ echo %OUTDIR%
 echo.
 
 if exist "%AUDIO%" (
-    set /p OVERWRITE_AUDIO=audio already exists. overwrite? ^(y/n^): 
+    set /p OVERWRITE_AUDIO=source audio already exists. overwrite? ^(y/n^): 
 )
 
 if exist "%OUTDIR%\chunk_000.mp3" (
@@ -55,23 +55,23 @@ if exist "%OUTDIR%\transcripts" (
 
 echo.
 if /i "%OVERWRITE_AUDIO%"=="y" (
-    echo step 1: extracting audio...
+    echo step 1: preparing source audio...
     "%FFMPEG%" -y -i "%INPUT%" -vn -ac 1 -ar 16000 -b:a 32k "%AUDIO%"
 
     if errorlevel 1 (
-        echo audio extraction failed
+        echo source audio preparation failed
         pause
         exit /b 1
     )
 ) else (
     if exist "%AUDIO%" (
-        echo step 1: reusing existing audio
+        echo step 1: reusing existing source audio
     ) else (
-        echo step 1: extracting audio...
+        echo step 1: preparing source audio...
         "%FFMPEG%" -y -i "%INPUT%" -vn -ac 1 -ar 16000 -b:a 32k "%AUDIO%"
 
         if errorlevel 1 (
-            echo audio extraction failed
+            echo source audio preparation failed
             pause
             exit /b 1
         )
@@ -83,7 +83,7 @@ if /i "%OVERWRITE_CHUNKS%"=="y" (
     echo deleting old chunks...
     del /q "%OUTDIR%\chunk_*.mp3" >nul 2>&1
 
-    echo step 2: splitting into 20-minute chunks...
+    echo step 2: splitting into chunks...
     "%FFMPEG%" -y -i "%AUDIO%" -f segment -segment_time 1200 -c copy "%CHUNKPATTERN%"
 
     if errorlevel 1 (
@@ -95,7 +95,7 @@ if /i "%OVERWRITE_CHUNKS%"=="y" (
     if exist "%OUTDIR%\chunk_000.mp3" (
         echo step 2: reusing existing chunks
     ) else (
-        echo step 2: splitting into 20-minute chunks...
+        echo step 2: splitting into chunks...
         "%FFMPEG%" -y -i "%AUDIO%" -f segment -segment_time 1200 -c copy "%CHUNKPATTERN%"
 
         if errorlevel 1 (

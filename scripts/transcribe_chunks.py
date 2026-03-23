@@ -23,9 +23,7 @@ def get_audio_duration_seconds(audio_path: Path) -> float:
 
 def main():
     if len(sys.argv) < 2:
-        print(
-            "usage: python transcribe_chunks.py <lecture_output_folder> [overwrite_transcripts]"
-        )
+        print("usage: python transcribe_chunks.py <output_folder> [overwrite_transcripts]")
         sys.exit(1)
 
     script_dir = Path(__file__).resolve().parent
@@ -43,28 +41,27 @@ def main():
         print(f"ffprobe not found: {ffprobe_exe}")
         sys.exit(1)
 
-    # make ffmpeg and ffprobe visible to pydub and subprocesses
     os.environ["PATH"] = str(ffmpeg_bin_dir) + os.pathsep + os.environ.get("PATH", "")
     AudioSegment.converter = str(ffmpeg_exe)
     AudioSegment.ffprobe = str(ffprobe_exe)
 
-    lecture_dir = Path(sys.argv[1]).resolve()
+    output_dir = Path(sys.argv[1]).resolve()
     overwrite_transcripts = "n"
 
     if len(sys.argv) >= 3:
         overwrite_transcripts = sys.argv[2].strip().lower()
 
-    if not lecture_dir.exists():
-        print("lecture folder not found")
+    if not output_dir.exists():
+        print("output folder not found")
         sys.exit(1)
 
-    chunk_files = sorted(lecture_dir.glob("chunk_*.mp3"))
+    chunk_files = sorted(output_dir.glob("chunk_*.mp3"))
 
     if not chunk_files:
         print("no chunks found")
         sys.exit(1)
 
-    transcripts_dir = lecture_dir / "transcripts"
+    transcripts_dir = output_dir / "transcripts"
     transcripts_dir.mkdir(exist_ok=True)
 
     print("loading faster-whisper model...")
@@ -92,7 +89,10 @@ def main():
             f"({format_seconds(chunk_duration)})"
         )
 
-        segments, info = model.transcribe(str(chunk_file), language="he")
+        segments, info = model.transcribe(
+            str(chunk_file),
+            language="he"
+        )
 
         chunk_text_parts = []
         last_progress_seconds = 0.0
@@ -102,7 +102,7 @@ def main():
             desc=f"{chunk_file.stem}",
             unit="sec",
             leave=True,
-            dynamic_ncols=True,
+            dynamic_ncols=True
         ) as pbar:
             for seg in segments:
                 chunk_text_parts.append(seg.text.strip())
@@ -131,7 +131,7 @@ def main():
             f"speed: {realtime_factor:.2f}x realtime)"
         )
 
-    full_transcript_path = lecture_dir / "full_transcript.txt"
+    full_transcript_path = output_dir / "full_transcript.txt"
     full_transcript_path.write_text("\n".join(full_text), encoding="utf-8")
 
     total_elapsed = time.perf_counter() - total_start_time
@@ -145,5 +145,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-# 2:42-52 10 minutes
-# 2:52-3:02 10 minutes
