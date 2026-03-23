@@ -4,9 +4,9 @@ A local pipeline for processing long audio or video recordings into text.
 
 ## What it does
 
-This project takes a recording (audio or video), prepares it for transcription, splits it into manageable chunks, and transcribes it locally using faster-whisper.
+This project takes a recording (audio or video), prepares it for transcription, splits it into manageable chunks, and transcribes it locally using 'faster-whisper'.
 
-Everything runs on your machine - no uploads, no cloud services.
+Everything runs on your machine - no uploads and cloud services.
 
 ## How it works
 
